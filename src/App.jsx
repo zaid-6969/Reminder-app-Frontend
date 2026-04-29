@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchMe } from './store/slices/authSlice';
-import LoginPage    from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import ProfilePage  from './pages/ProfilePage';
+import { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMe } from "./store/slices/authSlice";
+import usePushNotifications from "../../Frontend/src/hooks/usePushNotifications";
+import LoginPage     from "./pages/LoginPage";
+import RegisterPage  from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
+import ProfilePage   from "./pages/ProfilePage";
 
 const PrivateRoute = ({ children }) => {
   const { token } = useSelector((s) => s.auth);
@@ -25,11 +26,14 @@ export default function App() {
     if (token) dispatch(fetchMe());
   }, [token, dispatch]);
 
+  // Auto-registers browser for push after login
+  usePushNotifications();
+
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
-      <Route path="/login"    element={<GuestRoute><LoginPage /></GuestRoute>} />
+      <Route path="/"          element={<Navigate to="/dashboard" replace />} />
+      <Route path="/login"     element={<GuestRoute><LoginPage /></GuestRoute>} />
+      <Route path="/register"  element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
       <Route path="/profile"   element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
     </Routes>
