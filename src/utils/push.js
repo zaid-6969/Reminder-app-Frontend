@@ -4,7 +4,6 @@ export const registerServiceWorker = async () => {
   }
 };
 
-// 🔑 Fetch VAPID public key from backend
 const getPublicKey = async () => {
   const res = await fetch("http://localhost:5000/api/v1/push/vapid-public-key");
   const data = await res.json();
@@ -21,7 +20,6 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
 
-// 📡 Subscribe user
 export const subscribeUser = async () => {
   const registration = await navigator.serviceWorker.ready;
 

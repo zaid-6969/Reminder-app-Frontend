@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMe } from "./store/slices/authSlice";
-import usePushNotifications from "../../Frontend/src/hooks/usePushNotifications";
+import usePushNotifications from "./hooks/usePushNotifications";  // ← FIXED: was "../../Frontend/src/hooks/usePushNotifications"
 import LoginPage     from "./pages/LoginPage";
 import RegisterPage  from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -26,7 +26,7 @@ export default function App() {
     if (token) dispatch(fetchMe());
   }, [token, dispatch]);
 
-  // Auto-registers browser for push after login
+  // Registers browser for push notifications after login
   usePushNotifications();
 
   return (
