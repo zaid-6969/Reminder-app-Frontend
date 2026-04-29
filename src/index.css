@@ -1,1 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
 @import "tailwindcss";
+
+/* ── Light theme ─────────────────────────── */
+:root, .light {
+  --bg:            #f5f3ef;
+  --bg-card:       #ffffff;
+  --bg-input:      #eeece8;
+  --border:        #e2dfd8;
+  --text-primary:  #1a1814;
+  --text-secondary:#6b6760;
+  --text-muted:    #9e9b96;
+  --accent:        #e8571a;
+  --accent-hover:  #d14d15;
+  --accent-soft:   #fde8df;
+  --success:       #1a7a4a;
+  --success-soft:  #d6f0e3;
+  --warning:       #b45309;
+  --warning-soft:  #fef3c7;
+  --danger:        #dc2626;
+  --danger-soft:   #fee2e2;
+  --shadow:        0 2px 16px rgba(0,0,0,0.06);
+  --shadow-lg:     0 8px 40px rgba(0,0,0,0.12);
+  --font-display:  'Syne', sans-serif;
+  --font-body:     'DM Sans', sans-serif;
+}
+
+/* ── Dark theme ──────────────────────────── */
+.dark {
+  --bg:            #111110;
+  --bg-card:       #1c1b19;
+  --bg-input:      #252420;
+  --border:        #2e2d29;
+  --text-primary:  #f0ede8;
+  --text-secondary:#a09d97;
+  --text-muted:    #605d58;
+  --accent:        #f0642a;
+  --accent-hover:  #e85520;
+  --accent-soft:   #2d1a10;
+  --success:       #34d399;
+  --success-soft:  #0d2e1f;
+  --warning:       #fbbf24;
+  --warning-soft:  #2a1f06;
+  --danger:        #f87171;
+  --danger-soft:   #2d1010;
+  --shadow:        0 2px 16px rgba(0,0,0,0.35);
+  --shadow-lg:     0 8px 40px rgba(0,0,0,0.5);
+}
+
+/* ── Reset & Base ────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+}
+
+/* ── Scrollbar ───────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Animations ──────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.fade-up  { animation: fadeUp  0.4s cubic-bezier(0.16,1,0.3,1) both; }
+.scale-in { animation: scaleIn 0.25s cubic-bezier(0.16,1,0.3,1) both; }
+
+.s1 { animation-delay: 0.04s; }
+.s2 { animation-delay: 0.08s; }
+.s3 { animation-delay: 0.12s; }
+.s4 { animation-delay: 0.16s; }
+.s5 { animation-delay: 0.20s; }
+.s6 { animation-delay: 0.24s; }
+
+/* ── datetime-local input fix ────────────── */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5);
+  cursor: pointer;
+}
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}

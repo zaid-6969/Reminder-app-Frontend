@@ -4,17 +4,16 @@ import { createReminder, updateReminder } from '../../store/slices/reminderSlice
 import { format } from 'date-fns';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { RiCloseLine } from 'react-icons/ri';
+import { RiCloseLine, RiBellLine } from 'react-icons/ri';
 
-const toLocalDatetimeValue = (isoString) => {
-  if (!isoString) return '';
-  const d = new Date(isoString);
-  return format(d, "yyyy-MM-dd'T'HH:mm");
+const toLocalDT = (iso) => {
+  if (!iso) return '';
+  return format(new Date(iso), "yyyy-MM-dd'T'HH:mm");
 };
 
-const minDateTime = () => {
+const minDT = () => {
   const d = new Date();
-  d.setMinutes(d.getMinutes() + 1);
+  d.setMinutes(d.getMinutes() + 2);
   return format(d, "yyyy-MM-dd'T'HH:mm");
 };
 
@@ -22,29 +21,33 @@ export default function ReminderModal({ onClose, editReminder }) {
   const dispatch = useDispatch();
   const { submitting } = useSelector((s) => s.reminders);
 
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    dateTime: '',
-  });
+  const [form, setForm]     = useState({ title: '', description: '', dateTime: '' });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (editReminder) {
       setForm({
-        title: editReminder.title,
+        title:       editReminder.title,
         description: editReminder.description || '',
-        dateTime: toLocalDatetimeValue(editReminder.dateTime),
+        dateTime:    toLocalDT(editReminder.dateTime),
       });
     }
   }, [editReminder]);
 
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
   const validate = () => {
     const e = {};
-    if (!form.title.trim()) e.title = 'Title is required';
-    if (form.title.length > 100) e.title = 'Max 100 characters';
-    if (!form.dateTime) e.dateTime = 'Date and time is required';
-    if (form.dateTime && new Date(form.dateTime) <= new Date()) e.dateTime = 'Must be in the future';
+    if (!form.title.trim())       e.title    = 'Title is required';
+    if (form.title.length > 100)  e.title    = 'Max 100 characters';
+    if (!form.dateTime)           e.dateTime = 'Date and time is required';
+    if (form.dateTime && new Date(form.dateTime) <= new Date())
+      e.dateTime = 'Must be set in the future';
     return e;
   };
 
@@ -52,30 +55,30 @@ export default function ReminderModal({ onClose, editReminder }) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
+    setErrors({});
 
     const payload = {
-      title: form.title.trim(),
+      title:       form.title.trim(),
       description: form.description.trim(),
-      dateTime: new Date(form.dateTime).toISOString(),
+      dateTime:    new Date(form.dateTime).toISOString(),
     };
 
-    let result;
-    if (editReminder) {
-      result = await dispatch(updateReminder({ id: editReminder._id, data: payload }));
-    } else {
-      result = await dispatch(createReminder(payload));
-    }
+    const result = editReminder
+      ? await dispatch(updateReminder({ id: editReminder._id, data: payload }))
+      : await dispatch(createReminder(payload));
 
     if (!result.error) onClose();
   };
+
+  const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(0,0,0,0.45)',
-        backdropFilter: 'blur(4px)',
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(0,0,0,0.5)',
+        backdropFilter: 'blur(6px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '20px',
       }}
@@ -85,24 +88,40 @@ export default function ReminderModal({ onClose, editReminder }) {
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',
-          borderRadius: '16px',
-          padding: '28px',
-          width: '100%', maxWidth: '460px',
+          borderRadius: '18px',
+          padding: '32px',
+          width: '100%', maxWidth: '480px',
           boxShadow: 'var(--shadow-lg)',
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)' }}>
-            {editReminder ? 'Edit Reminder' : 'New Reminder'}
-          </h2>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', marginBottom: '26px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '36px', height: '36px', borderRadius: '9px',
+              background: 'var(--accent-soft)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <RiBellLine size={18} color="var(--accent)" />
+            </div>
+            <h2 style={{
+              fontFamily: 'var(--font-display)', fontSize: '20px',
+              fontWeight: '700', color: 'var(--text-primary)',
+            }}>
+              {editReminder ? 'Edit Reminder' : 'New Reminder'}
+            </h2>
+          </div>
           <button
             onClick={onClose}
             style={{
-              width: '32px', height: '32px', borderRadius: '8px',
+              width: '34px', height: '34px', borderRadius: '9px',
               border: '1px solid var(--border)', background: 'var(--bg-input)',
               color: 'var(--text-secondary)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s',
             }}
           >
             <RiCloseLine size={18} />
@@ -110,23 +129,30 @@ export default function ReminderModal({ onClose, editReminder }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+
           <Input
             label="Title *"
             placeholder="e.g. Take medication, Team meeting..."
             value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            onChange={set('title')}
             error={errors.title}
+            autoFocus
           />
 
+          {/* Description textarea */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', fontFamily: 'var(--font-display)' }}>
-              Description
+            <label style={{
+              fontSize: '13px', fontWeight: '500',
+              color: 'var(--text-secondary)',
+              fontFamily: 'var(--font-display)',
+            }}>
+              Description <span style={{ color: 'var(--text-muted)' }}>(optional)</span>
             </label>
             <textarea
-              placeholder="Optional details..."
+              placeholder="Add any extra details..."
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={set('description')}
               rows={3}
               style={{
                 width: '100%', padding: '10px 14px',
@@ -136,28 +162,50 @@ export default function ReminderModal({ onClose, editReminder }) {
                 color: 'var(--text-primary)',
                 fontSize: '14px', fontFamily: 'var(--font-body)',
                 outline: 'none', resize: 'vertical',
-                transition: 'border-color 0.15s',
+                transition: 'border-color 0.15s, box-shadow 0.15s',
               }}
-              onFocus={(e) => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-soft)'; }}
-              onBlur={(e)  => { e.target.style.borderColor = 'var(--border)';  e.target.style.boxShadow = 'none'; }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--accent)';
+                e.target.style.boxShadow   = '0 0 0 3px var(--accent-soft)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border)';
+                e.target.style.boxShadow   = 'none';
+              }}
             />
           </div>
 
           <Input
             label="Date & Time *"
             type="datetime-local"
-            min={editReminder ? undefined : minDateTime()}
+            min={editReminder ? undefined : minDT()}
             value={form.dateTime}
-            onChange={(e) => setForm({ ...form, dateTime: e.target.value })}
+            onChange={set('dateTime')}
             error={errors.dateTime}
           />
 
-          <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-            <Button type="button" variant="secondary" onClick={onClose} style={{ flex: 1 }}>
+          {/* Info note */}
+          <p style={{
+            fontSize: '12px', color: 'var(--text-muted)',
+            background: 'var(--bg-input)', borderRadius: '8px',
+            padding: '10px 12px', lineHeight: '1.5',
+          }}>
+            🔔 You'll receive a notification at the scheduled time, even if this tab is closed.
+          </p>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button
+              type="button" variant="secondary"
+              onClick={onClose} style={{ flex: 1 }}
+            >
               Cancel
             </Button>
-            <Button type="submit" loading={submitting} style={{ flex: 2 }}>
-              {editReminder ? 'Save Changes' : 'Create Reminder'}
+            <Button
+              type="submit" loading={submitting}
+              style={{ flex: 2 }}
+            >
+              {editReminder ? 'Save Changes' : '+ Create Reminder'}
             </Button>
           </div>
         </form>

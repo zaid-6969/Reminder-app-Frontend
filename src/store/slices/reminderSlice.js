@@ -9,7 +9,7 @@ export const fetchReminders = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const res = await api.get('/reminders', { params });
-      return res.data;
+      return { data: res.data, params };
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch reminders');
     }
@@ -69,35 +69,44 @@ export const markComplete = createAsyncThunk(
 const reminderSlice = createSlice({
   name: 'reminders',
   initialState: {
-    items: [],
+    items: [],       // filtered view shown on dashboard
+    allItems: [],    // always all reminders — used for stats on profile/dashboard
     pagination: null,
     loading: false,
     submitting: false,
-    filter: 'all', // 'all' | 'pending' | 'completed'
+    filter: 'all',
   },
   reducers: {
     setFilter: (s, a) => { s.filter = a.payload; },
   },
   extraReducers: (builder) => {
+
     // Fetch
     builder
-      .addCase(fetchReminders.pending,  (s) => { s.loading = true; })
+      .addCase(fetchReminders.pending, (s) => { s.loading = true; })
       .addCase(fetchReminders.fulfilled, (s, a) => {
         s.loading    = false;
-        s.items      = a.payload.reminders;
-        s.pagination = a.payload.pagination;
+        s.items      = a.payload.data.reminders;
+        s.pagination = a.payload.data.pagination;
+        // If no filter was applied, keep allItems in sync
+        if (!a.payload.params?.status) {
+          s.allItems = a.payload.data.reminders;
+        }
       })
       .addCase(fetchReminders.rejected, (s, a) => {
         s.loading = false;
-        toast.error(a.payload);
+        toast.error(a.payload || 'Failed to load reminders');
       });
 
-    // Create
+    // Create — add to both lists
     builder
       .addCase(createReminder.pending,  (s) => { s.submitting = true; })
       .addCase(createReminder.fulfilled, (s, a) => {
         s.submitting = false;
-        s.items.unshift(a.payload.reminder);
+        const reminder = a.payload.reminder;
+        // Add to items only if showing all or pending
+        if (s.filter !== 'completed') s.items.unshift(reminder);
+        s.allItems.unshift(reminder);
         toast.success('Reminder created! ⏰');
       })
       .addCase(createReminder.rejected, (s, a) => {
@@ -105,13 +114,18 @@ const reminderSlice = createSlice({
         toast.error(a.payload);
       });
 
-    // Update
+    // Update — replace in both lists
     builder
       .addCase(updateReminder.pending,  (s) => { s.submitting = true; })
       .addCase(updateReminder.fulfilled, (s, a) => {
         s.submitting = false;
-        const idx = s.items.findIndex((r) => r._id === a.payload.reminder._id);
-        if (idx !== -1) s.items[idx] = a.payload.reminder;
+        const updated = a.payload.reminder;
+        const replaceIn = (arr) => {
+          const idx = arr.findIndex((r) => r._id === updated._id);
+          if (idx !== -1) arr[idx] = updated;
+        };
+        replaceIn(s.items);
+        replaceIn(s.allItems);
         toast.success('Reminder updated!');
       })
       .addCase(updateReminder.rejected, (s, a) => {
@@ -119,19 +133,29 @@ const reminderSlice = createSlice({
         toast.error(a.payload);
       });
 
-    // Delete
+    // Delete — remove from both lists
     builder
       .addCase(deleteReminder.fulfilled, (s, a) => {
-        s.items = s.items.filter((r) => r._id !== a.payload);
+        s.items    = s.items.filter((r) => r._id !== a.payload);
+        s.allItems = s.allItems.filter((r) => r._id !== a.payload);
         toast.success('Reminder deleted');
       })
       .addCase(deleteReminder.rejected, (_, a) => toast.error(a.payload));
 
-    // Mark complete
+    // Mark complete — update in both lists
     builder
       .addCase(markComplete.fulfilled, (s, a) => {
-        const idx = s.items.findIndex((r) => r._id === a.payload.reminder._id);
-        if (idx !== -1) s.items[idx] = a.payload.reminder;
+        const updated = a.payload.reminder;
+        const replaceIn = (arr) => {
+          const idx = arr.findIndex((r) => r._id === updated._id);
+          if (idx !== -1) arr[idx] = updated;
+        };
+        replaceIn(s.items);
+        replaceIn(s.allItems);
+        // If viewing pending only, remove it from the visible list
+        if (s.filter === 'pending') {
+          s.items = s.items.filter((r) => r._id !== updated._id);
+        }
         toast.success('Marked as complete ✓');
       })
       .addCase(markComplete.rejected, (_, a) => toast.error(a.payload));

@@ -1,8 +1,12 @@
-export default function Input({ label, error, ...props }) {
+export default function Input({ label, error, hint, ...props }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
       {label && (
-        <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', fontFamily: 'var(--font-display)' }}>
+        <label style={{
+          fontSize: '13px', fontWeight: '500',
+          color: 'var(--text-secondary)',
+          fontFamily: 'var(--font-display)',
+        }}>
           {label}
         </label>
       )}
@@ -19,20 +23,30 @@ export default function Input({ label, error, ...props }) {
           fontFamily: 'var(--font-body)',
           outline: 'none',
           transition: 'border-color 0.15s, box-shadow 0.15s',
+          colorScheme: 'light dark',
           ...props.style,
         }}
         onFocus={(e) => {
-          e.target.style.borderColor = 'var(--accent)';
-          e.target.style.boxShadow = '0 0 0 3px var(--accent-soft)';
+          e.target.style.borderColor = error ? 'var(--danger)' : 'var(--accent)';
+          e.target.style.boxShadow   = error
+            ? '0 0 0 3px var(--danger-soft)'
+            : '0 0 0 3px var(--accent-soft)';
           props.onFocus?.(e);
         }}
         onBlur={(e) => {
           e.target.style.borderColor = error ? 'var(--danger)' : 'var(--border)';
-          e.target.style.boxShadow = 'none';
+          e.target.style.boxShadow   = 'none';
           props.onBlur?.(e);
         }}
       />
-      {error && <span style={{ fontSize: '12px', color: 'var(--danger)' }}>{error}</span>}
+      {hint && !error && (
+        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{hint}</span>
+      )}
+      {error && (
+        <span style={{ fontSize: '12px', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          ⚠ {error}
+        </span>
+      )}
     </div>
   );
 }

@@ -1,9 +1,10 @@
 export default function Button({ children, loading, variant = 'primary', size = 'md', ...props }) {
   const sizes = {
-    sm: { padding: '6px 14px', fontSize: '13px' },
+    sm: { padding: '6px 14px',  fontSize: '13px' },
     md: { padding: '10px 20px', fontSize: '14px' },
     lg: { padding: '13px 28px', fontSize: '15px' },
   };
+
   const variants = {
     primary: {
       background: 'var(--accent)',
@@ -27,36 +28,53 @@ export default function Button({ children, loading, variant = 'primary', size = 
     },
   };
 
+  const isDisabled = loading || props.disabled;
+
   return (
     <button
       {...props}
-      disabled={loading || props.disabled}
+      disabled={isDisabled}
       style={{
         ...sizes[size],
         ...variants[variant],
         borderRadius: '10px',
         fontFamily: 'var(--font-display)',
         fontWeight: '600',
-        cursor: loading || props.disabled ? 'not-allowed' : 'pointer',
-        opacity: loading || props.disabled ? 0.6 : 1,
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+        cursor: isDisabled ? 'not-allowed' : 'pointer',
+        opacity: isDisabled ? 0.6 : 1,
+        display: 'inline-flex', alignItems: 'center',
+        justifyContent: 'center', gap: '7px',
         transition: 'all 0.15s ease',
         whiteSpace: 'nowrap',
+        letterSpacing: '0.01em',
         ...props.style,
+      }}
+      onMouseEnter={(e) => {
+        if (!isDisabled && variant === 'primary') {
+          e.currentTarget.style.background = 'var(--accent-hover)';
+          e.currentTarget.style.borderColor = 'var(--accent-hover)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isDisabled && variant === 'primary') {
+          e.currentTarget.style.background = 'var(--accent)';
+          e.currentTarget.style.borderColor = 'var(--accent)';
+        }
       }}
     >
       {loading ? (
         <>
           <span style={{
-            width: '14px', height: '14px', border: '2px solid currentColor',
-            borderTopColor: 'transparent', borderRadius: '50%',
+            width: '14px', height: '14px',
+            border: '2px solid currentColor',
+            borderTopColor: 'transparent',
+            borderRadius: '50%',
             animation: 'spin 0.7s linear infinite',
-            display: 'inline-block',
+            display: 'inline-block', flexShrink: 0,
           }} />
           {children}
         </>
       ) : children}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </button>
   );
 }
