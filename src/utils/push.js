@@ -5,7 +5,7 @@ export const registerServiceWorker = async () => {
 };
 
 const getPublicKey = async () => {
-  const res = await fetch("http://localhost:5000/api/v1/push/vapid-public-key");
+  const res = await fetch("https://reminder-app-backend-five.vercel.app/api/v1/push/vapid-public-key");
   const data = await res.json();
   return data.publicKey;
 };
