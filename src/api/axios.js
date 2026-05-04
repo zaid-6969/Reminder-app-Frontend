@@ -1,7 +1,10 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://reminder-app-backend-five.vercel.app/api/v1",
+  // baseURL: "https://reminder-app-backend-five.vercel.app/api/v1",
+  // baseURL: "http://localhost:5000/api/v1",
+  // baseURL: "https://reminder-app-backend-s729.onrender.com/api/v1",
+  baseURL:"https://airy-dream-production.up.railway.app/api/v1",
   withCredentials: true,
 });
 

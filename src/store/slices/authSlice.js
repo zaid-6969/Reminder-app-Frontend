@@ -2,7 +2,18 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
-const storedUser = localStorage.getItem('user');
+// 🔧 FIX: safe parsing for user
+let parsedUser = null;
+
+try {
+  const rawUser = localStorage.getItem('user');
+  parsedUser =
+    rawUser && rawUser !== 'undefined' ? JSON.parse(rawUser) : null;
+} catch (e) {
+  console.error('Invalid user in localStorage');
+  parsedUser = null;
+}
+
 const storedToken = localStorage.getItem('token');
 
 // ── Thunks ────────────────────────────────────────────────────────────────────
@@ -49,7 +60,7 @@ export const fetchMe = createAsyncThunk('auth/me', async (_, { rejectWithValue }
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: storedUser ? JSON.parse(storedUser) : null,
+    user: parsedUser, // 🔧 FIX: use safe parsed value
     token: storedToken || null,
     loading: false,
     initialized: false,
@@ -70,8 +81,13 @@ const authSlice = createSlice({
         s.loading = false;
         s.user    = a.payload.user;
         s.token   = a.payload.token;
-        localStorage.setItem('user',  JSON.stringify(a.payload.user));
+
+        // 🔧 small safety
+        if (a.payload.user) {
+          localStorage.setItem('user', JSON.stringify(a.payload.user));
+        }
         localStorage.setItem('token', a.payload.token);
+
         toast.success('Account created! Welcome 🎉');
       })
       .addCase(registerUser.rejected, (s, a) => {
@@ -86,8 +102,13 @@ const authSlice = createSlice({
         s.loading = false;
         s.user    = a.payload.user;
         s.token   = a.payload.token;
-        localStorage.setItem('user',  JSON.stringify(a.payload.user));
+
+        // 🔧 small safety
+        if (a.payload.user) {
+          localStorage.setItem('user', JSON.stringify(a.payload.user));
+        }
         localStorage.setItem('token', a.payload.token);
+
         toast.success(`Welcome back, ${a.payload.user.name}! 👋`);
       })
       .addCase(loginUser.rejected, (s, a) => {
@@ -109,7 +130,10 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (s, a) => {
         s.user = a.payload.user;
         s.initialized = true;
-        localStorage.setItem('user', JSON.stringify(a.payload.user));
+
+        if (a.payload.user) {
+          localStorage.setItem('user', JSON.stringify(a.payload.user));
+        }
       })
       .addCase(fetchMe.rejected, (s) => { s.initialized = true; });
   },
